@@ -1,12 +1,22 @@
 # import tkinter for GUI
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 # import json to manipulate JSON 
 import json 
 # import datetime for date data formats
 from datetime import datetime
 import sys
 
+# -------------------
+# Global Variables
+# -------------------
+filename = "portfolios_data.json"
+
+
+
+# -------------------
+# Define key classes 
+# -------------------
 # Investment class, as defined in the UML diagram
 class Investment:
     def __init__(self, name, purchase_price, current_price, purchase_date):
@@ -111,12 +121,11 @@ class ETF(Investment):
         return self.value - original_value
         
         
-
 class Portfolio:
     def __init__(self, name):
+        self.name = name
         self.investments = []
         self.total_value = 0
-        self.name = name
 
     def add_investment(self, investment):
         self.investments.append(investment)
@@ -131,9 +140,9 @@ class Portfolio:
     def get_performance(self):
         pass
 
-
-
-
+# -------------------
+# Functions 
+# -------------------
 
 def create_investment(investment_type, **kwargs):
     """
@@ -149,44 +158,104 @@ def create_investment(investment_type, **kwargs):
     else:
         print("Invalid investment type ")
 
+ 
+def save_portfolio_data(portfolio_list):
+    portfolios_data = []
+
+    # for loop to go through each portfolio in a list and save the investments that are in the portfolio, based on the Portfolio class
+    for portfolio in portfolio_list:
+        portfolio_dict = {"name": portfolio.name, "investments": []}
+        # nested for loop to go through each investment in a portfolio
+        for investment in portfolio.investments:
+            investment_data = {
+                # class of investment object, and whether it is of type <class "Stock"> etc.;
+                "type": investment.__class__.__name__,
+                "name": investment.name,
+                "purchase_price": investment.purchase_price,
+                "current_price": investment.current_price,
+                # convert datetime object (what the data is stored as) into string
+                "purchase_date": investment.purchase_date.strftime("%Y-%m-%d")}
+        
+            # if investment type is an instance of investment of type class stock/crypto/etf, then update the data with additonal entries
+            if isinstance(investment, Stock):
+                investment_data.update({
+                    "ticker": investment.ticker,
+                    "shares": investment.shares,
+                    "value": investment.value,
+                    "sector_type": investment.sector_type})
+            if isinstance(investment, Crypto):
+                investment_data.update({
+                    "symbol": investment.symbol,
+                    "quantity": investment.quantity,
+                    "contact_address": investment.contact_address})
+            elif isinstance(investment, ETF):
+                investment_data.update({
+                    "ticker": investment.ticker,
+                    "shares": investment.shares,
+                    "expense_ratio": investment.expense_ratio})
+            else:
+                return -1 # return error 
+
+            # append the portfolio_dict with the updated data
+            portfolio_dict["investments"].append(investment_data)
+        # append the portfolio data with the dictionary when nested for loop is done
+        portfolios_data.append(portfolio_dict)
+        
+
+    # save file and write the Python dictionary as JSON format 
+    file = open(filename, "w+")
+    json.dump(portfolios_data, file, indent=6, ensure_ascii=True)
+    file.close()
+
+    
+def load_portfolio_data():
+    file = open(filename, "r")
+
+    portfolios_data = json.load(file)
+    file.close()
+    portfolios_list = []
+
+    # go through each portfolio in the JSON file and load a portfolio by calling the class 
+    for data in portfolios_data:
+        portfolio = Portfolio(data["name"])
+        # go through each attribute in investment and retrieve the investment type
+        for investment_data in data["investments"]:
+            investment_type = investment_data.pop("type")
+
+            if investment_type == "Stock":
+                investment = Stock(**investment_data)
+            if investment_type == "Crypto":
+                investment = Crypto(**investment_data)
+            if investment_type == "ETF":
+                investment = ETF(**investment_data)
+            else:
+                return -1
+            portfolio.add_investment(investment)
 
 
-# dummy data
-stock_data = {
-    "name": "Tesla",
-    "purchase_date": "2023-01-10",
-    "purchase_price": 149,
-    "current_price": 170,
-    "ticker": "TSLA",
-    "shares": 10,
-    "value": 1490,
-    "sector_type": "Automobile"
-}
+        portfolios_list.append(portfolio)
 
-etf_data = {
-    "name": "S&P 500",
-    "purchase_date": "2023-01-10",
-    "purchase_price": 149,
-    "current_price": 170,
-    "ticker": "VOO",
-    "shares": 10,
-    "expense_ratio": 0.03
-}
-
-crypto_data = {
-    "name": "Bitcoin",
-    "purchase_date": "2023-01-10",
-    "purchase_price": 150,
-    "current_price": 150,
-    "symbol": "BTC",
-    "quantity": 1,
-    "contact_address": "n/a"
-}
+    return portfolios_list
 
 
+def load_portfolio_list():
+    file = open(filename, "r")
+
+    portfolios_data = json.load(file)
+    file.close()
+    portfolios_list = []
+
+    for data in portfolios_data:
+        portfolio=Portfolio(data["name"])
+        portfolios_list.append(portfolio)
+
+    return portfolios_list
 
 
+# -------------------
 # GUI interface
+# -------------------
+
 class PortfolioInterface(tk.Tk):
     def __init__(self, portfolio_list):
         super().__init__()
@@ -209,9 +278,10 @@ class PortfolioInterface(tk.Tk):
         remove_button.pack()
 
 
+
     def view_portfolios(self):
         """
-        Direct to view portfolio once pressed button 
+        This will be the main page of viewing list of portfolios
         """    
 
         # set up view portfolio page 
@@ -229,83 +299,112 @@ class PortfolioInterface(tk.Tk):
         else:
             for portfolio in self.portfolio_list:
                 # set up the portfolio buttons, which will call on view investment method to look at the investments in that list
-                portfolio_button = ttk.Button(view_portolio_window, text=portfolio.name, command= lambda p=portfolio: self.view_investments(p, view_portolio_window))
+                portfolio_button = ttk.Button(view_portolio_window, text=portfolio.name, command= lambda p=portfolio: self.specific_portfolio(p, view_portolio_window))
                 portfolio_button.pack()
         
 
-    def view_investments(self, portfolio, view_portolio_window):
+    def specific_portfolio(self, portfolio, view_portolio_window):
         """
-        Direct to view investment once pressed button
+        Page that is redirected to when clicking on a portfolio. Will have several options, add/remove/edit investments, as well as viewing investments. 
+        It will also have visualisations implemented. 
         """
 
         # child of view portfolio class
         # set up view investment page 
-        view_investments_window = tk.Toplevel(view_portolio_window)
-        view_investments_window.title(f"Your investments")
-        view_investments_window.geometry("1280x720")
+        specific_portfolio_window = tk.Toplevel(view_portolio_window)
+        specific_portfolio_window.title(f"Your investments")
+        specific_portfolio_window.geometry("1280x720")
 
-        headline = ttk.Label(view_investments_window, text=f"Investments in {portfolio.name} ")
+        headline = ttk.Label(specific_portfolio_window, text=f"Investments in {portfolio.name} ")
         headline.pack()
 
         # check if list contains investments - this will need to have a button in the future to view *all* investments, instead of list them all in the same page. 
         if len(portfolio.investments) == 0:
-            no_investments_exist = ttk.Label(view_investments_window, text="No investments exist currently ")
+            no_investments_exist = ttk.Label(specific_portfolio_window, text="No investments exist currently ")
             no_investments_exist.pack()
         else:
             # need to add in functionality to view investments, using the portfolio class.
             pass
 
         # set up buttons
-        add_investment_button = ttk.Button(view_investments_window, text="Add investment ", command= lambda p=portfolio: self.add_investment(p, view_investments_window))
-        remove_investment_button = ttk.Button(view_investments_window, text="Remove investment ", command= lambda p=portfolio: self.remove_investment(p, view_investments_window))
-        edit_investment_button = ttk.Button(view_investments_window, text="Edit investment ", command= lambda p=portfolio: self.edit_investment(p, view_investments_window))
+        add_investment_button = ttk.Button(specific_portfolio_window, text="Add investment ", command= lambda p=portfolio: self.add_investment(p, specific_portfolio_window))
+        remove_investment_button = ttk.Button(specific_portfolio_window, text="Remove investment ", command= lambda p=portfolio: self.remove_investment(p, specific_portfolio_window))
+        edit_investment_button = ttk.Button(specific_portfolio_window, text="Edit investment ", command= lambda p=portfolio: self.edit_investment(p, specific_portfolio_window))
 
         add_investment_button.pack()
         remove_investment_button.pack()
         edit_investment_button.pack()
 
-
-    def add_investment(self, view_investments_window, portfolio):
+    
+    def add_investment(self, portfolio, specific_portfolio_window):
         """
-        Direct to add investment once pressed button
+        This method will open up an entry form to add an investment, it will then get the data entered, and call on a function to check it.
         """
-        add_investment_window = tk.Toplevel(view_investments_window)
+        # child of 
+        add_investment_window = tk.Toplevel(specific_portfolio_window)
         add_investment_window.title(f"Add investment")
         add_investment_window.geometry("1280x720")
 
         headline = ttk.Label(add_investment_window, text=f"Add an investment to portfolio: {portfolio.name}")
         headline.pack()
 
-    def remove_investment(self, view_investments_window, portfolio):
+        # Select type of investment from drop down menu, as seen in the mockup design
+        tk.Label(add_investment_window, text="Investment Type ").pack()
+        investment_type = tk.StringVar(value="Stock")
+        dropdown_type = ttk.Combobox(add_investment_window, textvariable=investment_type, values=["Stock", "ETF", "Crypto"])
+        dropdown_type.pack()
+
+        # Rest of the inputs - in a dictionary as will have same layout / design 
+        entry_form = {"Investment Name": tk.Entry(add_investment_window),
+                      "Date": tk.Entry(add_investment_window),
+                      "Investment Value": tk.Entry(add_investment_window),
+                      "Investment Price": tk.Entry(add_investment_window)}
+        
+        for label, entry in entry_form.items():
+            tk.Label(add_investment_window, text=label).pack()
+            entry.pack()
+        
+        
+        # Nested function to submit - this will check it the data is correct also and then save it to the portfolio
+        # This will also use the function create_investment()
+            def submit_investment():
+                pass 
+        
+        submit_button = ttk.Button(add_investment_window, text="Add Investment", command=submit_investment)
+        submit_button.pack()
+
+
+    def remove_investment(self, portfolio, specific_portfolio_window):
         """
         Direct to add investment once pressed button
         """
-        remove_investment_window = tk.Toplevel(view_investments_window)
+        remove_investment_window = tk.Toplevel(specific_portfolio_window)
         remove_investment_window.title(f"Add investment")
         remove_investment_window.geometry("1280x720")
 
-        # add functionality to remove an investment 
+        # add functionality to remove an investment - will have a list of investments w/ a filter to search for
 
-    def edit_investment(self, view_investments_window, portfolio):
+    def edit_investment(self, portfolio, specific_portfolio_window):
         """
         Direct to add investment once pressed button
         """
-        edit_investment_window = tk.Toplevel(view_investments_window)
+        edit_investment_window = tk.Toplevel(specific_portfolio_window)
         edit_investment_window.title(f"Add investment")
         edit_investment_window.geometry("1280x720")
 
-        # add functionality to edit an investment 
+        # add functionality to edit an investment - same as remove, will have a list of investments w/ a filter to search for
 
 
     def make_portfolio(self):
         """
-        Direct to make portfolio once pressed button
+        Make portfolio window
+        Create a new portfolio and save it to JSON file 
         """
 
         # set up make portfolio page 
-        make_portfolio_window = ttk.Toplevel(self)
+        make_portfolio_window = tk.Toplevel(self)
         make_portfolio_window.title("Make a portfolio")
-        make_portfolio_window.geometry("1280x720")
+        make_portfolio_window.geometry("1280x720") 
 
         headline = tk.Label(make_portfolio_window, text="Make Your Portfolio ")
         headline.pack()
@@ -316,18 +415,37 @@ class PortfolioInterface(tk.Tk):
         enter_name.pack()
         enter_name.insert(0, "Enter a portfolio name ")
 
-        submit_name = ttk.Button(make_portfolio_window, text="Submit ", command=lambda: self.create_portfolio(enter_name.get()))
+        def submit_portfolio():
+            """
+            Nested function that is called when the submit button is pressed
+            """
+            name = enter_name.get()
+            if name:
+                new_portfolio = Portfolio(name)
+                self.portfolio_list.append(new_portfolio)
+                # save to json, just the name for now - user will be able to add investments after
+                save_portfolio_data(self.portfolio_list)
+                # notify user
+                tk.messagebox.showinfo("Success", "Portfolio Created\nAdd investments by going back ")
+
+        submit_name = ttk.Button(make_portfolio_window, text="Submit", command=submit_portfolio)
         submit_name.pack()
+
+
+
+
+
+
+
+
+
         
 
 
 
 
 
-
-main_portfolio = Portfolio("main")
-xyz_portfolio = Portfolio("xyz")
-portfolio_list = [main_portfolio, xyz_portfolio]
+portfolio_list = load_portfolio_list()
 if __name__ == "__main__":
     app = PortfolioInterface(portfolio_list)
     app.mainloop()
