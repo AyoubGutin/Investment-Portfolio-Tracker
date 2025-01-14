@@ -1,28 +1,6 @@
 [
       {
-            "name": "Test Portfolio",
-            "investments": [
-                  {
-                        "type": "Stock",
-                        "name": "Apple",
-                        "purchase_price": 100.0,
-                        "value": "8767",
-                        "current_price": 450.0,
-                        "purchase_date": "2010-10-12"
-                  }
-            ]
-      },
-      {
-            "name": "The portfolio!",
-            "investments": [
-                  {
-                        "type": "Stock",
-                        "name": "Nvidia",
-                        "purchase_price": 20.0,
-                        "value": "300",
-                        "current_price": 30.0,
-                        "purchase_date": "2025-01-01"
-                  }
-            ]
+            "name": "Enter a portfolio name ",
+            "investments": []
       }
 ]
