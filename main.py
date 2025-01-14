@@ -28,20 +28,15 @@ class Investment:
         self.value = value
 
  # Investment methods, as defined in the UML diagram
-
     def get_percent_return(self):
         """
         Calculates percentage return
         """
         percent_return = float((self.current_price - self.purchase_price) / self.purchase_price * 100)
         return percent_return
-        
-# retrieve current price of investment w/ API
     def update_current_price(self):
         print("Not added")
         pass
-
-    
 
 # child classes 
 class Stock(Investment):
@@ -59,7 +54,7 @@ class ETF(Investment):
     # call parent class
         super().__init__(name=name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price, value=value)
 
-        
+
 class Portfolio:
     def __init__(self, name):
         self.name = name
@@ -79,11 +74,7 @@ class Portfolio:
     
     def calculate_total_value(self):
         return sum(investment.calculate_value() for investment in self.investments)
-    
 
-    def get_performance(self):
-        pass
-    
 
 # -------------------
 # Functions 
@@ -104,12 +95,16 @@ def create_investment(investment_type, **kwargs):
 
  
 def save_portfolio_data(portfolio_list):
+    """
+    function that saves data of a portfolio by converting from JSON to Object code, so it is readable by the program, then checks if there's any pending investments to be added
+    once the check is complete, the function then writes the investments into the JSON file and closes the file, therefore saving the data of the portfolio so it not lost after session
+    """
     file = open(filename, "r")
     portfolios_data = json.load(file)
     file.close()
 
     for portfolio in portfolio_list:
-        # check if the portfolio already exists in the loaded data
+        # check if the portfolio already exists in the loaded data, if not make one
         existing_portfolio = next((p for p in portfolios_data if p["name"] == portfolio.name), None)
         if existing_portfolio == None:
             existing_portfolio = {
@@ -133,12 +128,15 @@ def save_portfolio_data(portfolio_list):
                 }
                 existing_portfolio["investments"].append(investment_data)
 
-    # Write  updated data back to  file
+    # write updated data back to  file
     file = open(filename, "w")
     json.dump(portfolios_data, file, indent=6, ensure_ascii=True)
 
     
 def load_portfolio_data():
+    """
+    this returns a list of portolios with their respective data.
+    """
     file = open(filename, "r")
     portfolios_data = json.load(file)
     file.close()
@@ -159,6 +157,9 @@ def load_portfolio_data():
 
 
 def load_portfolio_list():
+    """
+    this loads only a list of portfolios, not the data - used when wanting to view a list of portfolios currently 
+    """
     # Check if the file exists before loading
     if not os.path.exists(filename):
         return [] 
@@ -178,7 +179,7 @@ def load_portfolio_list():
 
 def load_investment_list(portfolio_name):
     """
-    get all investments from a portfolio via JSON file 
+    this loads only a list of investments, not objects, so methods can't be used - used when wanting to view a list of investments currently in a portfolio
     """
     file = open("portfolios_data.json", "r")
     data = json.load(file)
@@ -193,7 +194,7 @@ def load_investment_list(portfolio_name):
 
 def load_investment_object(portfolio_name):
     """
-    get all investments from a portfolio via JSON file 
+    this loads JSON data and retrieves data about invesments, then converts to object code, so methods can be used.
     """
     file = open("portfolios_data.json", "r")
     data = json.load(file)
@@ -211,6 +212,9 @@ def load_investment_object(portfolio_name):
                 return []
 
 def update_investment(portfolio_name, updated_investments):
+    """
+    this adds investments to the JSON file
+    """
     file = open("portfolios_data.json", "r")
     data = json.load(file)
     file.close()
@@ -226,7 +230,7 @@ def update_investment(portfolio_name, updated_investments):
 
 def update_all_prices(portfolio, portfolio_list):
     """
-    Function to update prices by calling on the investment method 
+    this function updates  prices by calling on the investment method. Currently, feature is WIP 
     """
     tk.messagebox.showinfo("Failure", "Feature not added")
         
@@ -450,7 +454,6 @@ class PortfolioInterface(tk.Tk):
         """
         This method will open up an entry form to add an investment, it will then get the data entered, and call on a function to check it.
         """
-        # child of 
         add_investment_window = tk.Toplevel(specific_portfolio_window)
         add_investment_window.title(f"Add investment")
         add_investment_window.geometry("1280x720")
@@ -460,13 +463,13 @@ class PortfolioInterface(tk.Tk):
                              font=("Arial Black", 28), bg=background, fg="black")
         headline.pack(pady=(55,15))
 
-        # Select type of investment from drop down menu, as seen in the mockup design
+        # select type of investment from drop down menu, as seen in the mockup design
         tk.Label(add_investment_window, text="Investment Type ").pack()
         investment_type = tk.StringVar(value="Stock")
         dropdown_type = ttk.Combobox(add_investment_window, textvariable=investment_type, values=["Stock", "ETF", "Crypto"])
         dropdown_type.pack()
 
-        # Rest of the inputs - in a dictionary as will have same layout / design 
+        # rest of the inputs - in a dictionary as will have same layout / design 
         entry_form = {"Investment Name": tk.Entry(add_investment_window),
                       "Date": tk.Entry(add_investment_window),
                       "Investment Value": tk.Entry(add_investment_window),
@@ -478,8 +481,8 @@ class PortfolioInterface(tk.Tk):
             entry.pack()
         
         
-        # Nested function to submit - this will check it the data is correct also and then save it to the portfolio
-        # This will also use the function create_investment()
+        # nested function to submit - this will check it the data is correct also and then save it to the portfolio
+        # this will also use the function create_investment()
         def submit_investment():
             # get the entries once button is pressed
             name = entry_form["Investment Name"].get()
@@ -607,9 +610,6 @@ class PortfolioInterface(tk.Tk):
             cp_entry.pack()
 
 
-
-
-
             def save_changes():
                 """
                 Get fields once button pressed
@@ -664,7 +664,7 @@ class PortfolioInterface(tk.Tk):
     
         # entry form
         enter_name = ttk.Entry(make_portfolio_window)
-        enter_name.pack()
+        enter_name.pack(pady=15)
         enter_name.insert(0, "Enter a portfolio name ")
 
         def submit_portfolio():
@@ -681,14 +681,13 @@ class PortfolioInterface(tk.Tk):
                 tk.messagebox.showinfo("Success", "Portfolio Created\nAdd investments by going back ")
 
         submit_name = tk.Button(make_portfolio_window, text="Submit", command=submit_portfolio, font=("Arial", 16), bg="black", fg="white", relief="flat", width=20, height=5)
-        submit_name.pack()
+        submit_name.pack(pady=15)
 
 
 
 
 
-
-
+# Main code that will be run 
 portfolio_list = load_portfolio_list()
 if __name__ == "__main__":
     app = PortfolioInterface(portfolio_list)
