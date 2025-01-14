@@ -391,6 +391,40 @@ class PortfolioInterface(tk.Tk):
                 tree.insert("", tk.END, values=(investment["type"], investment["name"], investment["purchase_price"], investment["current_price"], investment["value"], investment["purchase_date"]))
         tree.pack(fill=tk.BOTH, expand=True)
 
+        def apply_filter():
+            filter = filter_entry.get().lower()
+            for row in tree.get_children():
+                tree.delete(row)
+            # insert row match filter
+            for investment in investments:
+                if filter in investment["name"].lower():
+                    tree.insert("", tk.END, values=(investment["type"], investment["name"], investment["purchase_price"], investment["current_price"], investment["value"], investment["purchase_date"]))
+
+        def clear_filter():
+            # clear filter and resinsert rows
+            filter_entry.delete(0, tk.END) 
+            for row in tree.get_children():
+                tree.delete(row)
+            for investment in investments:
+                tree.insert("", tk.END, values=(investment["type"], investment["name"], investment["purchase_price"], investment["current_price"], investment["value"], investment["purchase_date"]))
+
+        # frame for filter
+        filter_frame = tk.Frame(specific_portfolio_window, bg=background)
+        filter_frame.pack(pady=15)
+
+        filter_label = tk.Label(filter_frame, text="Filter by Name: ", bg=background,
+                                font=("Arial", 16))
+        filter_label.pack(side=tk.LEFT, padx=8)
+
+        filter_entry = tk.Entry(filter_frame, font=("Arial", 16))
+        filter_entry.pack(side=tk.LEFT, padx=8)
+
+        filter_button = tk.Button(filter_frame, text="Apply",
+                                   command=apply_filter, font=("Arial", 16), bg="black", fg="white", 
+                                   relief="flat", width=10)
+        filter_button.pack(side=tk.LEFT, padx=10)
+
+
         # set up buttons
         add_investment_button = tk.Button(specific_portfolio_window, text="Add investment ", command= lambda p=portfolio: self.add_investment(p, specific_portfolio_window),
                                           font=("Arial", 10), bg="black", fg="white", relief="flat", width=20, height=1)
