@@ -5,25 +5,24 @@ from tkinter import ttk, messagebox
 import json 
 # import datetime for date data formats
 from datetime import datetime
-import sys
+import os
 
 # -------------------
 # Global Variables
 # -------------------
 filename = "portfolios_data.json"
 
-
-
 # -------------------
 # Define key classes 
 # -------------------
 # Investment class, as defined in the UML diagram
 class Investment:
-    def __init__(self, name, purchase_price, current_price, purchase_date):
+    def __init__(self, name, purchase_price, current_price, purchase_date, value):
         self.name = name
         self.purchase_price = purchase_price
         self.current_price = current_price
         self.purchase_date = datetime.strptime(purchase_date, "%Y-%m-%d")
+        self.value = value
 
  # Investment methods, as defined in the UML diagram
 
@@ -39,93 +38,34 @@ class Investment:
 
 # child classes 
 class Stock(Investment):
-    def __init__(self, name, ticker, shares, purchase_date, purchase_price, current_price, value, sector_type):
+    def __init__(self, name, purchase_date, purchase_price, current_price, value):
 # call parent class
-        super().__init__(name =name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price)
-        self.ticker = ticker
-        self.shares = float(shares)
-        self.value = float(value)
-        self.sector_type = sector_type
-
-# getters and setters
-    def set_shares(self):
-        self.shares = float(input("Enter how many shares you bought the investment at "))
-        
-    def set_ticker(self):
-        # will use api to get ticker from name, for now label it x
-        self.ticker = "x"
-
-    def set_sector_type(self):
-        self.sector_type = str(input("What sector is your stock in"))
-
-        # calculate abs return
-    def get_abs_return(self):
-        original_value = self.purchase_price * self.shares
-        self.value = self.shares * self.current_price
-        return self.value - original_value
-        
+        super().__init__(name =name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price, value=value)
 
 class Crypto(Investment):
-    def __init__(self, name, symbol, quantity, contact_address, purchase_date, purchase_price, current_price):
+    def __init__(self, name, purchase_date, purchase_price, current_price, value):
         # call parent class
-        super().__init__(name=name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price)
-        self.symbol = symbol
-        self.quantity = float(quantity)
-        self.contact_address = contact_address
-
-# getters and setters
-    def set_contact_address(self):
-        # will use api to get contact address from blockchain, for now label it y 
-        self.contact_address = "y"
-
-    def set_symbol(self):
-        # will use api to get symbol from blockchain, for now label it x 
-        self.symbol = "x"
-
-    def get_market_cap():
-        # will use api for this
-        pass
-    def get_24h_volume():
-        # will use api for this
-        pass
-
-    def get_abs_return(self):
-        original_value = self.purchase_price * self.quantity
-        self.value = self.quantity * self.current_price
-        return self.value - original_value
-        
+        super().__init__(name=name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price, value=value)
 
 class ETF(Investment):
-    def __init__(self, name, ticker, shares, expense_ratio, purchase_price, purchase_date, current_price):
+    def __init__(self, name, purchase_price, purchase_date, current_price, value):
     # call parent class
-        super().__init__(name=name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price)
-        self.ticker = ticker
-        self.shares = float(shares)
-        self.expense_ratio = float(expense_ratio)
+        super().__init__(name=name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price, value=value)
 
-# getters and setters
-    def set_shares(self):
-        self.shares = float(input("Enter how many shares you bought the investment at "))
-        
-    def set_ticker(self):
-        # will use api to get ticker from name, for now label it x
-        self.ticker = "x"
-
-    def set_expense_ratio(self):
-        self.expense_ratio = float(input("Enter expense ratio"))
-
-
-    def get_abs_return(self):
-        original_value = self.purchase_price * self.shares
-        self.value = self.shares * self.current_price
-        return self.value - original_value
-        
         
 class Portfolio:
     def __init__(self, name):
         self.name = name
         self.investments = []
         self.total_value = 0
+
+    def get_investments(self, investment_data):
+        """
+        Loads investment from JSON, adds to portfolio
+        """
+        for investment in investment_data:
+            investment_type = investment.pop("type")
+            self.add_investment(create_investment(investment_type))
 
     def add_investment(self, investment):
         self.investments.append(investment)
@@ -160,59 +100,38 @@ def create_investment(investment_type, **kwargs):
 
  
 def save_portfolio_data(portfolio_list):
-    portfolios_data = []
-
-    # for loop to go through each portfolio in a list and save the investments that are in the portfolio, based on the Portfolio class
-    for portfolio in portfolio_list:
-        portfolio_dict = {"name": portfolio.name, "investments": []}
-        # nested for loop to go through each investment in a portfolio
-        for investment in portfolio.investments:
-            investment_data = {
-                # class of investment object, and whether it is of type <class "Stock"> etc.;
-                "type": investment.__class__.__name__,
-                "name": investment.name,
-                "purchase_price": investment.purchase_price,
-                "current_price": investment.current_price,
-                # convert datetime object (what the data is stored as) into string
-                "purchase_date": investment.purchase_date.strftime("%Y-%m-%d")}
-        
-            # if investment type is an instance of investment of type class stock/crypto/etf, then update the data with additonal entries
-            if isinstance(investment, Stock):
-                investment_data.update({
-                    "ticker": investment.ticker,
-                    "shares": investment.shares,
-                    "value": investment.value,
-                    "sector_type": investment.sector_type})
-            if isinstance(investment, Crypto):
-                investment_data.update({
-                    "symbol": investment.symbol,
-                    "quantity": investment.quantity,
-                    "contact_address": investment.contact_address})
-            elif isinstance(investment, ETF):
-                investment_data.update({
-                    "ticker": investment.ticker,
-                    "shares": investment.shares,
-                    "expense_ratio": investment.expense_ratio})
-            else:
-                return -1 # return error 
-
-            # append the portfolio_dict with the updated data
-            portfolio_dict["investments"].append(investment_data)
-        # append the portfolio data with the dictionary when nested for loop is done
-        portfolios_data.append(portfolio_dict)
-        
-
-    # save file and write the Python dictionary as JSON format 
-    file = open(filename, "w+")
-    json.dump(portfolios_data, file, indent=6, ensure_ascii=True)
+    file = open(filename, "r")
+    portfolios_data = json.load(file)
     file.close()
+
+    for portfolio in portfolio_list:
+        # check if the portfolio already exists in the loaded data
+        existing_portfolio = next((p for p in portfolios_data if p["name"] == portfolio.name), None)
+        
+        # check if any investments need to be added
+        for investment in portfolio.investments:
+            # if the investment doesn't exist in the portfolio, add it
+            # eventually - this will update to the investment instead of not add it.
+            if not any(inv['name'] == investment.name for inv in existing_portfolio["investments"]):
+                investment_data = {
+                    "type": investment.__class__.__name__,
+                    "name": investment.name,
+                    "purchase_price": investment.purchase_price,
+                    "current_price": investment.current_price,
+                    "purchase_date": investment.purchase_date.strftime("%Y-%m-%d")
+                }
+                existing_portfolio["investments"].append(investment_data)
+
+    # Write  updated data back to  file
+    file = open(filename, "w")
+    json.dump(portfolios_data, file, indent=6, ensure_ascii=True)
 
     
 def load_portfolio_data():
     file = open(filename, "r")
-
     portfolios_data = json.load(file)
     file.close()
+
     portfolios_list = []
 
     # go through each portfolio in the JSON file and load a portfolio by calling the class 
@@ -221,37 +140,57 @@ def load_portfolio_data():
         # go through each attribute in investment and retrieve the investment type
         for investment_data in data["investments"]:
             investment_type = investment_data.pop("type")
-
-            if investment_type == "Stock":
-                investment = Stock(**investment_data)
-            if investment_type == "Crypto":
-                investment = Crypto(**investment_data)
-            if investment_type == "ETF":
-                investment = ETF(**investment_data)
-            else:
-                return -1
+            investment = create_investment(investment_type, **investment_data)
             portfolio.add_investment(investment)
-
-
         portfolios_list.append(portfolio)
 
     return portfolios_list
 
 
 def load_portfolio_list():
-    file = open(filename, "r")
+    # Check if the file exists before loading
+    if not os.path.exists(filename):
+        return [] 
 
+    file = open(filename, "r")
     portfolios_data = json.load(file)
     file.close()
-    portfolios_list = []
 
+
+    portfolios_list = []
     for data in portfolios_data:
-        portfolio=Portfolio(data["name"])
+        portfolio = Portfolio(data["name"])
         portfolios_list.append(portfolio)
 
     return portfolios_list
 
 
+def load_investment_list(portfolio_name):
+    """
+    get all investments from a portfolio via JSON file 
+    """
+    file = open("portfolios_data.json", "r")
+    data = json.load(file)
+    for portfolio in data:
+            if portfolio["name"] == portfolio_name:
+                return portfolio.get("investments", [])
+            else:
+                return []
+                
+
+def update_investment(portfolio_name, updated_investments):
+    file = open("portfolios_data.json", "r")
+    data = json.load(file)
+    file.close()
+
+    for portfolio in data:
+        if portfolio["name"] == portfolio_name:
+            portfolio["investments"] = updated_investments 
+        
+    file = open("portfolios_data.json", "w")
+    json.dump(data, file, indent=6)
+    file.close()
+        
 # -------------------
 # GUI interface
 # -------------------
@@ -309,6 +248,7 @@ class PortfolioInterface(tk.Tk):
         It will also have visualisations implemented. 
         """
 
+
         # child of view portfolio class
         # set up view investment page 
         specific_portfolio_window = tk.Toplevel(view_portolio_window)
@@ -318,13 +258,18 @@ class PortfolioInterface(tk.Tk):
         headline = ttk.Label(specific_portfolio_window, text=f"Investments in {portfolio.name} ")
         headline.pack()
 
+
+        # call on load investment function 
+        investments = load_investment_list(portfolio.name)
+
         # check if list contains investments - this will need to have a button in the future to view *all* investments, instead of list them all in the same page. 
-        if len(portfolio.investments) == 0:
+        if len(investments) == 0:
             no_investments_exist = ttk.Label(specific_portfolio_window, text="No investments exist currently ")
             no_investments_exist.pack()
         else:
-            # need to add in functionality to view investments, using the portfolio class.
-            pass
+            for investment in investments:
+                investment_display = ttk.Label(specific_portfolio_window, text=investment)
+                investment_display.pack()
 
         # set up buttons
         add_investment_button = ttk.Button(specific_portfolio_window, text="Add investment ", command= lambda p=portfolio: self.add_investment(p, specific_portfolio_window))
@@ -367,9 +312,34 @@ class PortfolioInterface(tk.Tk):
         
         # Nested function to submit - this will check it the data is correct also and then save it to the portfolio
         # This will also use the function create_investment()
-            def submit_investment():
-                pass 
-        
+        def submit_investment():
+            # get the entries once button is pressed
+            name = entry_form["Investment Name"].get()
+            purchase_date = entry_form["Date"].get()
+            value = entry_form["Investment Value"].get()
+            purhase_price = float(entry_form["Investment Price"].get())
+            type = investment_type.get()
+
+            # create investment object
+            investment_data = {
+                "name": name,
+                "purchase_date": purchase_date,
+                "value": value,
+                "purchase_price": purhase_price,
+                "current_price": purhase_price # keep current price as purchase price for now 
+            }
+
+            investment = create_investment(type, **investment_data)
+
+            # add investment to portfolio
+            portfolio.add_investment(investment)
+
+            # save to JSON
+            save_portfolio_data(self.portfolio_list)
+
+            # notify user
+            tk.messagebox.showinfo("Success", "Investment created")
+
         submit_button = ttk.Button(add_investment_window, text="Add Investment", command=submit_investment)
         submit_button.pack()
 
@@ -378,11 +348,43 @@ class PortfolioInterface(tk.Tk):
         """
         Direct to add investment once pressed button
         """
+        
+        # intialise screen
         remove_investment_window = tk.Toplevel(specific_portfolio_window)
         remove_investment_window.title(f"Add investment")
         remove_investment_window.geometry("1280x720")
 
-        # add functionality to remove an investment - will have a list of investments w/ a filter to search for
+        investments = load_investment_list(portfolio.name)
+
+        # nested method for removal, once an investment is selected 
+        def removal(investment):
+            """
+            Remove selected investment 
+            """
+            if investment in investments:
+                investments.remove(investment)
+                update_investment(portfolio.name, investments)
+                messagebox.showinfo("Success", "Removed investment")
+        
+        # display investment in a listbox to remove
+        select_investment = ttk.Label(remove_investment_window, text="Select investment to remove ")
+        select_investment.pack()
+    
+
+        listbox = tk.Listbox(remove_investment_window, height=20, width=100)
+        for investment in investments:
+            investment_det = {
+                f"Type: {investment['type']}, ",
+                f"Name: {investment['name']}, "
+            }
+            listbox.insert(tk.END, investment_det)
+        listbox.pack()
+        
+        # remove button 
+        remove_button = ttk.Button(remove_investment_window, text="Remove", 
+                                   command = lambda: removal(investments[listbox.curselection()[0]]))
+        remove_button.pack()
+
 
     def edit_investment(self, portfolio, specific_portfolio_window):
         """
@@ -432,14 +434,6 @@ class PortfolioInterface(tk.Tk):
         submit_name.pack()
 
 
-
-
-
-
-
-
-
-        
 
 
 

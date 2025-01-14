@@ -1,10 +1,28 @@
 [
       {
-            "name": "123",
-            "investments": []
-      },
-      {
-            "name": "Main Portfolio!",
-            "investments": []
+            "name": "Enter a portfolio name ",
+            "investments": [
+                  {
+                        "type": "Stock",
+                        "name": "aaa",
+                        "purchase_price": 999.0,
+                        "current_price": 999.0,
+                        "purchase_date": "2006-03-03"
+                  },
+                  {
+                        "type": "Stock",
+                        "name": "jljljljj",
+                        "purchase_price": 9090.0,
+                        "current_price": 9090.0,
+                        "purchase_date": "2003-04-04"
+                  },
+                  {
+                        "type": "Stock",
+                        "name": "ijj",
+                        "purchase_price": 20.0,
+                        "current_price": 20.0,
+                        "purchase_date": "2004-03-02"
+                  }
+            ]
       }
 ]
