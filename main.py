@@ -305,11 +305,11 @@ class PortfolioInterface(tk.Tk):
 
             for investment in investments:
                 names.append(investment["name"])
-                purchase_price.append(investment["purchase_price"])
-                current_price.append(investment["current_price"])
+                purchase_price.append(float(investment["purchase_price"]))
+                current_price.append(float(investment["current_price"]))
 
                         # calculate percentage return directly
-                percent_return = ((investment["current_price"] - investment["purchase_price"]) / investment["purchase_price"]) * 100
+                percent_return =(investment["current_price"] - investment["purchase_price"]) / investment["purchase_price"] * 100
                 percent_returns.append(percent_return)
 
             # create bar chart
