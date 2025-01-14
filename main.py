@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 # -------------------
 filename = "portfolios_data.json"
 background = "#d3d3d3"
-
 # -------------------
 # Define key classes 
 # -------------------
@@ -28,12 +27,6 @@ class Investment:
         self.value = value
 
  # Investment methods, as defined in the UML diagram
-    def get_percent_return(self):
-        """
-        Calculates percentage return
-        """
-        percent_return = float((self.current_price - self.purchase_price) / self.purchase_price * 100)
-        return percent_return
     def update_current_price(self):
         print("Not added")
         pass
@@ -54,7 +47,6 @@ class ETF(Investment):
     # call parent class
         super().__init__(name=name, purchase_date=purchase_date, purchase_price=purchase_price, current_price=current_price, value=value)
 
-
 class Portfolio:
     def __init__(self, name):
         self.name = name
@@ -74,12 +66,9 @@ class Portfolio:
     
     def calculate_total_value(self):
         return sum(investment.calculate_value() for investment in self.investments)
-
-
 # -------------------
 # Functions 
 # -------------------
-
 def create_investment(investment_type, **kwargs):
     """
     function that takes in an investment type, and calls the respective class, with a number of parameters
@@ -93,11 +82,9 @@ def create_investment(investment_type, **kwargs):
     else:
         print("Invalid investment type ")
 
- 
 def save_portfolio_data(portfolio_list):
     """
-    function that saves data of a portfolio by converting from JSON to Object code, so it is readable by the program, then checks if there's any pending investments to be added
-    once the check is complete, the function then writes the investments into the JSON file and closes the file, therefore saving the data of the portfolio so it not lost after session
+    function that saves data of a portfolio by converting from JSON to Object code, so it is readable by the program, then checks if there's any pending investments to be added once the check is complete, the function then writes the investments into the JSON file and closes the file, therefore saving the data of the portfolio so it not lost after session
     """
     file = open(filename, "r")
     portfolios_data = json.load(file)
@@ -132,7 +119,6 @@ def save_portfolio_data(portfolio_list):
     file = open(filename, "w")
     json.dump(portfolios_data, file, indent=6, ensure_ascii=True)
 
-    
 def load_portfolio_data():
     """
     this returns a list of portolios with their respective data.
@@ -155,7 +141,6 @@ def load_portfolio_data():
 
     return portfolios_list
 
-
 def load_portfolio_list():
     """
     this loads only a list of portfolios, not the data - used when wanting to view a list of portfolios currently 
@@ -176,7 +161,6 @@ def load_portfolio_list():
 
     return portfolios_list
 
-
 def load_investment_list(portfolio_name):
     """
     this loads only a list of investments, not objects, so methods can't be used - used when wanting to view a list of investments currently in a portfolio
@@ -190,7 +174,6 @@ def load_investment_list(portfolio_name):
                 return portfolio.get("investments", [])
             else:
                 return []
-
 
 def load_investment_object(portfolio_name):
     """
@@ -233,11 +216,9 @@ def update_all_prices(portfolio, portfolio_list):
     this function updates  prices by calling on the investment method. Currently, feature is WIP 
     """
     tk.messagebox.showinfo("Failure", "Feature not added")
-        
 # -------------------
 # GUI interface
 # -------------------
-
 class PortfolioInterface(tk.Tk):
     def __init__(self, portfolio_list):
         super().__init__()
@@ -264,8 +245,6 @@ class PortfolioInterface(tk.Tk):
 
         view_button.pack(pady=15)
         remove_button.pack(pady=15)
-
-
 
     def view_portfolios(self):
         """
@@ -294,15 +273,10 @@ class PortfolioInterface(tk.Tk):
                                             font=("Arial", 16), bg="black", fg="white", relief="flat", width=20, height=5)
                 portfolio_button.pack(pady=15)
 
-        
-
     def specific_portfolio(self, portfolio, view_portolio_window):
         """
-        Page that is redirected to when clicking on a portfolio. Will have several options, add/remove/edit investments, as well as viewing investments. 
-        It will also have visualisations implemented. 
+        Page that is redirected to when clicking on a portfolio. Will have several options, add/remove/edit investments, as well as viewing investments. It will also have visualisations implemented. 
         """
-
-
         # child of view portfolio class
         # set up view investment page 
         specific_portfolio_window = tk.Toplevel(view_portolio_window)
@@ -314,8 +288,6 @@ class PortfolioInterface(tk.Tk):
                              font=("Arial Black", 28), bg=background, fg="black")
         headline.pack(pady=(55,15))
 
-
-
         # call on load investment function 
         investments = load_investment_list(portfolio.name)
 
@@ -324,7 +296,6 @@ class PortfolioInterface(tk.Tk):
             """
             Display performance of all investments
             """
-
             # bar chart prep
             investments = load_investment_list(portfolio.name)
             names = []
@@ -359,14 +330,9 @@ class PortfolioInterface(tk.Tk):
 
             for i, name in enumerate(names):
                 # display percentage return
-
                 percent_return = percent_returns[i]
                 print(percent_return)
                 ax.text(i, max(purchase_price[i], current_price[i]) + 2, f"{percent_return:.2f}%", ha="center", va="bottom", fontsize=10, color="blue")
-
-
-
-
             plt.show()
 
         # set up table for viewing investments
@@ -404,14 +370,6 @@ class PortfolioInterface(tk.Tk):
                 if filter in investment["name"].lower():
                     tree.insert("", tk.END, values=(investment["type"], investment["name"], investment["purchase_price"], investment["current_price"], investment["value"], investment["purchase_date"]))
 
-        def clear_filter():
-            # clear filter and resinsert rows
-            filter_entry.delete(0, tk.END) 
-            for row in tree.get_children():
-                tree.delete(row)
-            for investment in investments:
-                tree.insert("", tk.END, values=(investment["type"], investment["name"], investment["purchase_price"], investment["current_price"], investment["value"], investment["purchase_date"]))
-
         # frame for filter
         filter_frame = tk.Frame(specific_portfolio_window, bg=background)
         filter_frame.pack(pady=15)
@@ -427,7 +385,6 @@ class PortfolioInterface(tk.Tk):
                                    command=apply_filter, font=("Arial", 16), bg="black", fg="white", 
                                    relief="flat", width=10)
         filter_button.pack(side=tk.LEFT, padx=10)
-
 
         # set up buttons
         add_investment_button = tk.Button(specific_portfolio_window, text="Add investment ", command= lambda p=portfolio: self.add_investment(p, specific_portfolio_window),
@@ -446,9 +403,6 @@ class PortfolioInterface(tk.Tk):
         edit_investment_button.pack(pady=5)
         update_prices_button.pack(pady=5)
         show_performance_button.pack(pady=5)
-
-        
-
 
     def add_investment(self, portfolio, specific_portfolio_window):
         """
@@ -480,7 +434,6 @@ class PortfolioInterface(tk.Tk):
             tk.Label(add_investment_window, text=label).pack()
             entry.pack()
         
-        
         # nested function to submit - this will check it the data is correct also and then save it to the portfolio
         # this will also use the function create_investment()
         def submit_investment():
@@ -500,7 +453,6 @@ class PortfolioInterface(tk.Tk):
                 "purchase_price": purchase_price,
                 "current_price": current_price # keep current price as purchase price for now 
             }
-
             investment = create_investment(type, **investment_data)
 
             # add investment to portfolio
@@ -515,12 +467,10 @@ class PortfolioInterface(tk.Tk):
         submit_button = tk.Button(add_investment_window, text="Add Investment", command=submit_investment, font=("Arial", 16), bg="black", fg="white", relief="flat", width=20, height=5)
         submit_button.pack(pady=15)
 
-
     def remove_investment(self, portfolio, specific_portfolio_window):
         """
-        Direct to add investment once pressed button
+        Removes investment
         """
-        
         # intialise screen
         remove_investment_window = tk.Toplevel(specific_portfolio_window)
         remove_investment_window.title(f"Add investment")
@@ -558,7 +508,6 @@ class PortfolioInterface(tk.Tk):
                                    command = lambda: removal(investments[listbox.curselection()[0]]),
                                    font=("Arial", 16), bg="black", fg="white", relief="flat", width=20, height=5)
         remove_button.pack(pady=15)
-
 
     def edit_investment(self, portfolio, specific_portfolio_window):
         """
@@ -609,7 +558,6 @@ class PortfolioInterface(tk.Tk):
             cp_entry.insert(0, investment["current_price"])
             cp_entry.pack()
 
-
             def save_changes():
                 """
                 Get fields once button pressed
@@ -631,7 +579,6 @@ class PortfolioInterface(tk.Tk):
         select_investment = ttk.Label(edit_investment_window, text="Select investment to remove ")
         select_investment.pack()
     
-
         listbox = tk.Listbox(edit_investment_window, height=20, width=100)
         for investment in investments:
             investment_det = {
@@ -643,7 +590,6 @@ class PortfolioInterface(tk.Tk):
         edit_button = tk.Button(edit_investment_window, text="Edit", command= lambda: edit(investments[listbox.curselection()[0]]),
                                 font=("Arial", 16), bg="black", fg="white", relief="flat", width=20, height=5)
         edit_button.pack(pady=15)
-
 
     def make_portfolio(self):
         """
@@ -661,7 +607,6 @@ class PortfolioInterface(tk.Tk):
                              font=("Arial Black", 28), bg=background, fg="black")
         headline.pack(pady=(55,15))
 
-    
         # entry form
         enter_name = ttk.Entry(make_portfolio_window)
         enter_name.pack(pady=15)
@@ -683,20 +628,8 @@ class PortfolioInterface(tk.Tk):
         submit_name = tk.Button(make_portfolio_window, text="Submit", command=submit_portfolio, font=("Arial", 16), bg="black", fg="white", relief="flat", width=20, height=5)
         submit_name.pack(pady=15)
 
-
-
-
-
 # Main code that will be run 
 portfolio_list = load_portfolio_list()
 if __name__ == "__main__":
     app = PortfolioInterface(portfolio_list)
     app.mainloop()
-
-
-
-
-
-
-
-

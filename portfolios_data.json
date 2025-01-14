@@ -1,27 +1,28 @@
 [
       {
-            "name": "Enter a portfolio name ",
+            "name": "Test Portfolio",
             "investments": [
                   {
                         "type": "Stock",
-                        "name": "Nvidia",
-                        "purchase_price": 200.0,
-                        "value": "2303",
-                        "current_price": 220.0,
-                        "purchase_date": "2025-01-14"
-                  },
-                  {
-                        "type": "Stock",
                         "name": "Apple",
-                        "purchase_price": 32.0,
-                        "value": "3200",
-                        "current_price": 44.0,
-                        "purchase_date": "2025-10-01"
+                        "purchase_price": 100.0,
+                        "value": "8767",
+                        "current_price": "450.0",
+                        "purchase_date": "2010-10-12"
                   }
             ]
       },
       {
-            "name": "Ayoub's Portfolio",
-            "investments": []
+            "name": "The portfolio!",
+            "investments": [
+                  {
+                        "type": "Stock",
+                        "name": "Nvidia",
+                        "purchase_price": 20.0,
+                        "value": "300",
+                        "current_price": 30.0,
+                        "purchase_date": "2025-01-01"
+                  }
+            ]
       }
 ]
