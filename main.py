@@ -26,8 +26,10 @@ class Investment:
 
  # Investment methods, as defined in the UML diagram
 
-# calculate percent return
     def get_percent_return(self):
+        """
+        Calculates percentage return
+        """
         percent_return = (self.current_price - self.purchase_price) / self.purchase_price * 100
         return percent_return
         
@@ -69,9 +71,6 @@ class Portfolio:
 
     def add_investment(self, investment):
         self.investments.append(investment)
-
-    def remove_investment(self, investment):
-        self.investments.remove(investment)
     
     def calculate_total_value(self):
         return sum(investment.calculate_value() for investment in self.investments)
@@ -86,8 +85,7 @@ class Portfolio:
 
 def create_investment(investment_type, **kwargs):
     """
-    function that takes in an investment type, and calls the respective class,
-    with a number of parameters
+    function that takes in an investment type, and calls the respective class, with a number of parameters
     """
     if investment_type == "Stock":
         return Stock(**kwargs)
@@ -391,10 +389,73 @@ class PortfolioInterface(tk.Tk):
         Direct to add investment once pressed button
         """
         edit_investment_window = tk.Toplevel(specific_portfolio_window)
-        edit_investment_window.title(f"Add investment")
+        edit_investment_window.title(f"Edit investment")
         edit_investment_window.geometry("1280x720")
 
-        # add functionality to edit an investment - same as remove, will have a list of investments w/ a filter to search for
+        # same as remove, will have a list of investments.
+        
+        investments = load_investment_list(portfolio.name)
+
+        def edit(investment):
+            """
+            Edit investment selected
+            """
+            edit_window = tk.Toplevel(edit_investment_window)
+            edit_window.title("Edit Investment ")
+            edit_window.geometry("720x400")
+
+            # pre fill 
+            tk.Label(edit_window, text="Type").pack()
+            type_entry = tk.Entry(edit_window)
+            type_entry.insert(0, investment["type"])
+            type_entry.pack()
+
+            tk.Label(edit_window, text="Name").pack()
+            name_entry = tk.Entry(edit_window)
+            name_entry.insert(0, investment["name"])
+            name_entry.pack()
+
+            tk.Label(edit_window, text="Purchase Price").pack()
+            pp_entry = tk.Entry(edit_window)
+            pp_entry.insert(0, investment["purchase_price"])
+            pp_entry.pack()
+
+            tk.Label(edit_window, text="Purchase Date").pack()
+            pd_entry = tk.Entry(edit_window)
+            pd_entry.insert(0, investment["purchase_date"])
+            pd_entry.pack()
+
+
+            def save_changes():
+                """
+                Get fields once button pressed
+                """
+                investment["type"] = type_entry.get()
+                investment["name"] = name_entry.get()
+                investment["purchase_price"] = float(pp_entry.get())
+                investment["purchase_date"] = pd_entry.get()
+
+                update_investment(portfolio.name, investments)
+                messagebox.showinfo("Success", "Investment Updated")
+        
+            save_button = ttk.Button(edit_window, text="Save", command=save_changes)
+            save_button.pack()
+    
+
+        select_investment = ttk.Label(edit_investment_window, text="Select investment to remove ")
+        select_investment.pack()
+    
+
+        listbox = tk.Listbox(edit_investment_window, height=20, width=100)
+        for investment in investments:
+            investment_det = {
+                f"Type: {investment['type']}, Name: {investment['name']}"
+            }
+            listbox.insert(tk.END, investment_det)
+        listbox.pack()
+
+        edit_button = ttk.Button(edit_investment_window, text="Edit", command= lambda: edit(investments[listbox.curselection()[0]]))
+        edit_button.pack()
 
 
     def make_portfolio(self):

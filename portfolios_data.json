@@ -5,16 +5,16 @@
                   {
                         "type": "Stock",
                         "name": "aaa",
-                        "purchase_price": 999.0,
+                        "purchase_price": 1000000.0,
                         "current_price": 999.0,
-                        "purchase_date": "2006-03-03"
+                        "purchase_date": "1000000.0"
                   },
                   {
                         "type": "Stock",
                         "name": "jljljljj",
-                        "purchase_price": 9090.0,
+                        "purchase_price": 989898989.0,
                         "current_price": 9090.0,
-                        "purchase_date": "2003-04-04"
+                        "purchase_date": "989898989"
                   },
                   {
                         "type": "Stock",
@@ -22,6 +22,13 @@
                         "purchase_price": 20.0,
                         "current_price": 20.0,
                         "purchase_date": "2004-03-02"
+                  },
+                  {
+                        "type": "Crypto",
+                        "name": "Bitcoin",
+                        "purchase_price": 100.0,
+                        "current_price": 320000.0,
+                        "purchase_date": "2024-01-01"
                   }
             ]
       }
