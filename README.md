@@ -1,4 +1,4 @@
-# IOT451-Final-Project-AyoubGutin
+# Investment Portfolio Tracker
  Final project for fundamentals of programming module. 
 
  ## Investment Portfolio Tracker - Python-based app to help users manage investments in their portfolios. It has a clean and simple GUI, JSON-based data storage, and visualisations. 
